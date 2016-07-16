@@ -14,20 +14,24 @@ in_ports_no_comma_list = []
 out_ports_no_comma_list = []
 for line in fin:
     # match input in1,in2, or input [3:0] in1,in2,
-    m = re.match(r'^\s*input\s*(?P<WIDTH>(\[\d*:\d\])*)\s*(?P<NAME>(\w+\,\s*)+)',line) 
+    m = re.match(r'^\s*input\s*(?P<WIDTH>(\[\d*:\d\])*)\s*(?P<NAME>(\w+,\s*)+)',line) 
     if m:
         in_ports = m.group('NAME')
         port_width = m.group('WIDTH')
+        print(port_width)
         in_ports_no_comma_tmp = re.split(',',in_ports)
         in_ports_no_comma_list += in_ports_no_comma_tmp[0:-1]
 
-    # match output in1,in2, or input [3:0] in1,in2, pr output out3
-    m1 = re.match(r'^\s*output\s*(?P<WIDTH>(\[\d*:\d\])*)\s*(?P<NAME>(\w+\,\s*)+\w+)',line) 
-    if m1:
-        out_ports = m1.group('NAME')
-        port_width = m1.group('WIDTH')
-        out_ports_no_comma_tmp = re.split(',', out_ports)
+    # match output in1,in2 or input [3:0] in1,in2
+    m2 = re.match(r'^\s*output\s*(?P<WIDTH>(\[\d*:\d\])*)\s*(?P<NAME>((\w+,)*\w+\s*))',line) 
+    if m2:
+        out_ports2 = m2.group('NAME')
+        port_width2 = m2.group('WIDTH')
+        out_ports_no_comma_tmp = re.split(',', out_ports2)
         out_ports_no_comma_list += out_ports_no_comma_tmp
+
+out_ports_no_comma_list[-1] = re.sub('\n','',out_ports_no_comma_list[-1])
+print(out_ports_no_comma_list)
 
 for ports in in_ports_no_comma_list:
     if port_width:
@@ -36,7 +40,7 @@ for ports in in_ports_no_comma_list:
         fout.write('reg' + port_width + ' ' + ports + ';\n')
 
 for ports in out_ports_no_comma_list:
-    if port_width:
+    if port_width2:
         fout.write('wire ' + port_width + ' ' + ports + ';\n')
     else:
         fout.write('wire' + port_width + ' ' + ports + ';\n')
@@ -48,11 +52,11 @@ for ports in in_ports_no_comma_list:
     fout.write('\t.' + ports + '(' + ports + '),\n')
 for ports in out_ports_no_comma_list[0:-1]:
     fout.write('\t.' + ports + '(' + ports + '),\n')
-#fout.write('\t.' + out_ports_no_comma_list[-1] + '(' + out_ports_no_comma_list[-1] + ')\n')
+fout.write('\t.' + out_ports_no_comma_list[-1] + '(' + out_ports_no_comma_list[-1] + ')\n')
 fout.write(');\n\n')
 
-for ports in out_ports_no_comma_list:
-    fout.write(ports)
+#for ports in out_ports_no_comma_list:
+#    print(ports)
 
 # get clock ports
 clk_ports = {} # dict store all clk ports
